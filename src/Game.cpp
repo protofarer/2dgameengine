@@ -24,8 +24,10 @@ void Game::Initialize() {
 	SDL_GetCurrentDisplayMode(0, &displayMode);
 
 	// set to constant (dont use displaymode dims) to use as logical dimensions
-	windowWidth = 800; // displayMode.w;
-	windowHeight = 600; // displayMode.h;
+	windowWidth = 800; 
+	windowHeight = 600; 
+	// windowWidth = displayMode.w;
+	// windowHeight = displayMode.h;
 
 	window = SDL_CreateWindow(
 		NULL,
@@ -59,7 +61,7 @@ glm::vec2 playerVelocity;
 
 void Game::Setup() {
 	playerPosition = glm::vec2(10.0, 20.0);
-	playerVelocity = glm::vec2(1.0, 0.0);
+	playerVelocity = glm::vec2(200.0, 100.0);
 }
 
 void Game::Update() {
@@ -70,11 +72,19 @@ void Game::Update() {
 		SDL_Delay(timeToWait);
 	}
 
-	// Store current frame time
+	double dt = (SDL_GetTicks() - millisecsPreviousFrame) / 1000.0;
+
+	// Store the now previous frame time
 	millisecsPreviousFrame = SDL_GetTicks();
 
-	playerPosition.x += playerVelocity.x;
-	playerPosition.y += playerVelocity.y;
+	playerPosition.x += playerVelocity.x * dt;
+	playerPosition.y += playerVelocity.y * dt;
+	if (playerPosition.x < 0 || playerPosition.x >= 800) {
+		playerVelocity.x *= -1;
+	}
+	if (playerPosition.y < 0 || playerPosition.y >= 600) {
+		playerVelocity.y *= -1;
+	}
 }
 
 void Game::ProcessInput() {
