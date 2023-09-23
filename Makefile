@@ -11,7 +11,6 @@ SRCS := src/*.cpp $(wildcard $(SRC_DIR)/**/*.cpp)
 EXECUTABLE := gameengine
 OBJS := $(patsubst %.cpp, %.o, $(SRCS))
 
-
 build:
 # g++ \
 # -Wall -std=c++17 -I./libs \
@@ -20,10 +19,10 @@ build:
 # -o gameengine;
 	$(CXX) $(CXX_FLAGS) $(LANG_STD) $(INCLUDE_PATH) $(SRCS) $(LD_FLAGS) -o $(EXECUTABLE) 
 
-go: $(EXECUTABLE) run
-
 run: $(EXECUTABLE)
 	./$(EXECUTABLE)
+
+go: $(EXECUTABLE) run
 
 .PHONY: clean
 clean:
