@@ -1,9 +1,9 @@
 #include "Game.h"
+#include "../../libs/glm/glm.hpp"
+#include "../Logger/Logger.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "../libs/glm/glm.hpp"
 #include <iostream>
-#include "Logger.h"
 
 // SCOPE::METHOD()
 Game::Game() {
