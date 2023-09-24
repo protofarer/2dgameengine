@@ -2,6 +2,9 @@
 #include "../Logger/Logger.h"
 #include <algorithm>
 
+// deleteme after debug segfault from createentity
+#include <iostream>
+
 int IComponent::nextId = 0;
 
 size_t Entity::GetId() const { return id; }

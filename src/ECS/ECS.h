@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Logger/Logger.h"
 #include <vector>
 #include <bitset>
 #include <set>
@@ -36,7 +37,7 @@ class Entity {
 	private:
 		size_t id;
 	public:
-		Entity(int id): id(id) {};
+		Entity(size_t id): id(id) {};
 		Entity(const Entity& entity) = default;
 		size_t GetId() const; // declare doesnt modify members/internals of class
 
@@ -108,7 +109,7 @@ class Registry {
 		// Ea pool contains all the data for a certain component type
 		// [Vector index = component type id]
 		// [Pool index = entity id]
-		std::vector<IPool*> componentPools;
+		std::vector<std::shared_ptr<IPool>> componentPools;
 
 		// Vector of component sigs per entity, saying which comp is turned on for ea entity
 		// [Vector index = entity id]
@@ -116,14 +117,20 @@ class Registry {
 
 		// Map of active systems
 		// [Map key = system type id]
-		std::unordered_map<std::type_index, System*> systems;
+		std::unordered_map<std::type_index, std::shared_ptr<System>> systems;
 
 		// Entites flagged for add/remove till next registry update
 		std::set<Entity> entitiesToBeAdded;
 		std::set<Entity> entitiesToBeKilled;
 
 	public:
-		Registry() = default;
+		Registry() {
+			Logger::Log("registry constructor called");
+		}
+
+		~Registry() {
+			Logger::Log("registry destructor called");
+		}
 
 		void Update();
 
@@ -164,7 +171,7 @@ template <typename TComponent> void System::RequireComponent() {
 
 template <typename TSystem, typename ...TArgs>
 void Registry::AddSystem(TArgs&& ...args) {
-	TSystem* newSystem(new TSystem(std::forward<TArgs>(args)...));
+	std::shared_ptr<TSystem> newSystem = std::make_shared<TSystem>(std::forward<TArgs>(args)...);
 	systems.insert(
 		std::make_pair(
 			std::type_index(typeid(TSystem)), 
@@ -200,12 +207,12 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 	}
 
 	if (!componentPools[componentId]) {
-		Pool<TComponent>* newComponentPool = new Pool<TComponent>();
+		std::shared_ptr<Pool<TComponent>> newComponentPool = std::make_shared<Pool<TComponent>>();
 		componentPools[componentId] = newComponentPool;
 	}
 
 	// ? is type cast really needed?
-	Pool<TComponent>* componentPool = Pool<TComponent>(componentPools[componentId]);
+	std::shared_ptr<Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
 
 	if (entityId >= componentPool->GetSize()) {
 		componentPool->Resize(numEntities);
