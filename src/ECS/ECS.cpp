@@ -31,6 +31,7 @@ Entity Registry::CreateEntity() {
 	size_t entityId = numEntities++;
 
 	Entity entity(entityId);
+	entity.registry = this;
 	entitiesToBeAdded.insert(entity);
 
 	// make sure entityComponentSignatures vector can fit new entity

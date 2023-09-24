@@ -3,6 +3,10 @@
 #include "../ECS/ECS.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
+#include "../ECS/Components/SpriteComponent.h"
+#include "../ECS/Systems/MovementSystem.h"
+#include "../ECS/Systems/RenderSystem.h"
+#include "../ECS/Components/SpriteComponent.h"
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -60,12 +64,19 @@ void Game::Initialize() {
 }
 
 void Game::Setup() {
+	// Add systems that need to be processed
+	registry->AddSystem<MovementSystem>();
+	registry->AddSystem<RenderSystem>();
+
 	Entity tank = registry->CreateEntity();
-	registry->AddComponent<TransformComponent>(tank, glm::vec2(10.0, 30.0), glm::vec2(1.0, 1.0), 0.0);
-	registry->AddComponent<RigidBodyComponent>(tank, glm::vec2(50.0, 0.0));
-	// tank.addComponent<TransformComponent>();
-	// tank.addComponent<BoxColliderComponent>();
-	// tank.addComponent<SpriteComponent>("./path/to/png");
+	tank.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(1.0, 1.0), 0.0);
+	tank.AddComponent<RigidBodyComponent>(glm::vec2(40.0, 0.0));
+	tank.AddComponent<SpriteComponent>(10, 10);
+
+	Entity truck = registry->CreateEntity();
+	truck.AddComponent<TransformComponent>(glm::vec2(50.0, 100.0), glm::vec2(1.0, 1.0), 0.0);
+	truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 50.0));
+	truck.AddComponent<SpriteComponent>(10, 50);
 }
 
 void Game::Update() {
@@ -76,15 +87,27 @@ void Game::Update() {
 		SDL_Delay(timeToWait);
 	}
 
-	// double dt = (SDL_GetTicks() - millisecsPreviousFrame) / 1000.0;
+	double dt = (SDL_GetTicks() - millisecsPreviousFrame) / 1000.0;
 
 	// Store the now previous frame time
 	millisecsPreviousFrame = SDL_GetTicks();
 
-	// TODO
-	// MovementSystem.Update();
+	// Ask all systems to update
+	registry->GetSystem<MovementSystem>().Update(dt);
 	// CollisionSystem.Update();
 	// DamageSystem.Update();
+
+	// Update registry to process entities pending add/delete
+	registry->Update();
+}
+
+void Game::Render() {
+	SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
+	SDL_RenderClear(renderer);
+
+	registry->GetSystem<RenderSystem>().Update(renderer);
+
+	SDL_RenderPresent(renderer); // paints window
 }
 
 void Game::ProcessInput() {
@@ -101,16 +124,6 @@ void Game::ProcessInput() {
 				break;
 		}
 	}
-}
-
-void Game::Render() {
-	SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
-	SDL_RenderClear(renderer);
-
-	// TODO
-	// Render game objects
-
-	SDL_RenderPresent(renderer); // paints window
 }
 
 void Game::Run() {
