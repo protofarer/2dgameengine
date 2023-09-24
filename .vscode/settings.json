@@ -52,6 +52,10 @@
 		"__split_buffer": "cpp",
 		"__threading_support": "cpp",
 		"__verbose_abort": "cpp",
-		"iostream": "cpp"
+		"iostream": "cpp",
+		"deque": "cpp",
+		"forward_list": "cpp",
+		"list": "cpp",
+		"locale": "cpp"
 	}
 }
