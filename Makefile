@@ -22,7 +22,7 @@ build:
 run: $(EXECUTABLE)
 	./$(EXECUTABLE)
 
-go: $(EXECUTABLE) run
+go: build run
 
 .PHONY: clean
 clean:

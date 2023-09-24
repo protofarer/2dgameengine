@@ -6,9 +6,10 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 
-// SCOPE::METHOD()
 Game::Game() {
 	isRunning = false;
+	// Registry* registry = new Registry();
+	registry = new Registry();
 	Logger::Log("Game construct called.");
 }
 
@@ -54,13 +55,13 @@ void Game::Initialize() {
 		return;
 	}
 	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
-
 	isRunning = true;
 }
 
 void Game::Setup() {
 	// TODO
-	// Entity tank = registry.CreateEntity();
+	Entity tank = registry->CreateEntity();
+	Entity truck = registry->CreateEntity();
 	// tank.addComponent<TransformComponent>();
 	// tank.addComponent<BoxColliderComponent>();
 	// tank.addComponent<SpriteComponent>("./path/to/png");

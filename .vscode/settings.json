@@ -56,6 +56,10 @@
 		"deque": "cpp",
 		"forward_list": "cpp",
 		"list": "cpp",
-		"locale": "cpp"
+		"locale": "cpp",
+		"array": "cpp",
+		"bitset": "cpp",
+		"cwctype": "cpp",
+		"unordered_map": "cpp"
 	}
 }
