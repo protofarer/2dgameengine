@@ -5,7 +5,7 @@
 // deleteme after debug segfault from createentity
 #include <iostream>
 
-int IComponent::nextId = 0;
+size_t IComponent::nextId = 0;
 
 size_t Entity::GetId() const { return id; }
 
@@ -34,7 +34,7 @@ Entity Registry::CreateEntity() {
 	entitiesToBeAdded.insert(entity);
 
 	// make sure entityComponentSignatures vector can fit new entity
-	if (entityId > entityComponentSignatures.size()) {
+	if (entityId >= entityComponentSignatures.size()) {
 		entityComponentSignatures.resize(entityId + 1);
 	}
 

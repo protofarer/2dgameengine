@@ -8,6 +8,9 @@
 #include <typeindex>
 #include <memory>
 
+// debug
+#include <iostream>
+
 const unsigned int MAX_COMPONENTS = 32;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,15 +25,16 @@ typedef std::bitset<MAX_COMPONENTS> Signature;
 
 struct IComponent {
 	protected:
-		static int nextId;
+		static size_t nextId;
 };
 
 template <typename T>
 class Component: public IComponent {
-	static int GetId() {
-		static auto id = nextId++;
-		return id;
-	}
+	public:
+		static size_t GetId() {
+			static auto id = nextId++;
+			return id;
+		}
 };
 
 class Entity {
@@ -217,6 +221,7 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 	if (entityId >= componentPool->GetSize()) {
 		componentPool->Resize(numEntities);
 	}
+	
 
 	// forward args to constructor
 	TComponent newComponent(std::forward<TArgs>(args)...);
@@ -226,6 +231,8 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 
 	// update the entity's component signature for the added component
 	entityComponentSignatures[entityId].set(componentId);
+
+	Logger::Log("Component id = " + std::to_string(componentId) + " was added to entity id " +std::to_string(entityId));
 };
 
 template <typename TComponent>

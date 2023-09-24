@@ -12,7 +12,9 @@ class Game {
 		int millisecsPreviousFrame;
 		SDL_Window* window;
 		SDL_Renderer* renderer;
+
 		std::unique_ptr<Registry> registry;
+
 	public:
 		Game();
 		~Game();

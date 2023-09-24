@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "../Logger/Logger.h"
 #include "../ECS/ECS.h"
+#include "../ECS/Components/TransformComponent.h"
+#include "../ECS/Components/RigidBodyComponent.h"
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -26,8 +28,8 @@ void Game::Initialize() {
 	SDL_GetCurrentDisplayMode(0, &displayMode);
 
 	// set to constant (dont use displaymode dims) to use as logical dimensions
-	windowWidth = 800; 
-	windowHeight = 600; 
+	windowWidth = 2560; 
+	windowHeight = 1440; 
 	// windowWidth = displayMode.w;
 	// windowHeight = displayMode.h;
 
@@ -58,9 +60,9 @@ void Game::Initialize() {
 }
 
 void Game::Setup() {
-	// TODO
 	Entity tank = registry->CreateEntity();
-	Entity truck = registry->CreateEntity();
+	registry->AddComponent<TransformComponent>(tank, glm::vec2(10.0, 30.0), glm::vec2(1.0, 1.0), 0.0);
+	registry->AddComponent<RigidBodyComponent>(tank, glm::vec2(50.0, 0.0));
 	// tank.addComponent<TransformComponent>();
 	// tank.addComponent<BoxColliderComponent>();
 	// tank.addComponent<SpriteComponent>("./path/to/png");
