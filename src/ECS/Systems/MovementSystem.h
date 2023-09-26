@@ -20,7 +20,7 @@ class MovementSystem: public System {
 				transform.position.x += rigidbody.velocity.x * dt;
 				transform.position.y += rigidbody.velocity.y * dt;
 
-				Logger::Log("Entity id = " + std::to_string(entity.GetId()) + " position is now (" + std::to_string(transform.position.x) + ", " + std::to_string(transform.position.y) + ")");
+				// Logger::Log("Entity id = " + std::to_string(entity.GetId()) + " position is now (" + std::to_string(transform.position.x) + ", " + std::to_string(transform.position.y) + ")");
 			}
 		}
 };

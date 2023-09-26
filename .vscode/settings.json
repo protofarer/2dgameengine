@@ -60,6 +60,7 @@
 		"array": "cpp",
 		"bitset": "cpp",
 		"cwctype": "cpp",
-		"unordered_map": "cpp"
+		"unordered_map": "cpp",
+		"map": "cpp"
 	}
 }
