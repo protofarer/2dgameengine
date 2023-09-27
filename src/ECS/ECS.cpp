@@ -2,12 +2,13 @@
 #include "../Logger/Logger.h"
 #include <algorithm>
 
-// deleteme after debug segfault from createentity
-#include <iostream>
-
 size_t IComponent::nextId = 0;
 
 size_t Entity::GetId() const { return id; }
+
+void Entity::Kill() {
+	registry->KillEntity(*this);
+}
 
 void System::AddEntityToSystem(Entity entity) {
 	entities.push_back(entity);

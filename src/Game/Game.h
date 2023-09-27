@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include "../ECS/ECS.h"
+#include "../EventBus/EventBus.h"
 #include "../AssetStore/AssetStore.h"
 
 const int FPS = 60;
@@ -14,12 +15,15 @@ class Game {
 		int millisecsPreviousFrame;
 		SDL_Window* window;
 		SDL_Renderer* renderer;
+		SDL_Rect camera;
 
 		std::unique_ptr<Registry> registry;
 		std::unique_ptr<AssetStore> assetStore;
+		std::unique_ptr<EventBus> eventBus;
+
 		std::vector<std::vector<int>> ReadMatrixFromFile(
 			const std::string& filename, int windowWidth, int windowHeight);
-		void CreateTileMapping(std::vector<std::vector<int>>& matrix);
+		void CreateTileMapEntities(std::vector<std::vector<int>>& matrix);
 
 	public:
 		Game();
@@ -33,6 +37,12 @@ class Game {
 		void Render();
 		void Destroy();
 
-		int windowWidth;
-		int windowHeight;
+		static int logicalWidth;
+		static int logicalHeight;
+		static int windowWidth;
+		static int windowHeight;
+		static int mapWidth;
+		static int mapHeight;
+		static double entityTweak;
+		static double tileTweak;
 };
