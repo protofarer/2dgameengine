@@ -1,21 +1,21 @@
 #include "Game.h"
 #include "../Logger/Logger.h"
 #include "../ECS/ECS.h"
-#include "../ECS/Components/TransformComponent.h"
-#include "../ECS/Components/RigidBodyComponent.h"
-#include "../ECS/Components/SpriteComponent.h"
-#include "../ECS/Components/AnimationComponent.h"
-#include "../ECS/Components/BoxColliderComponent.h"
-#include "../ECS/Components/CameraFollowComponent.h"
-#include "../ECS/Systems/MovementSystem.h"
-#include "../ECS/Systems/RenderSystem.h"
-#include "../ECS/Systems/AnimationSystem.h"
-#include "../ECS/Systems/CollisionSystem.h"
-#include "../ECS/Systems/DamageSystem.h"
-#include "../ECS/Systems/KeyboardControlSystem.h"
-#include "../ECS/Systems/CameraMovementSystem.h"
-#include "../ECS/Components/SpriteComponent.h"
-#include "../ECS/Components/KeyboardControlComponent.h"
+#include "../Components/TransformComponent.h"
+#include "../Components/RigidBodyComponent.h"
+#include "../Components/SpriteComponent.h"
+#include "../Components/AnimationComponent.h"
+#include "../Components/BoxColliderComponent.h"
+#include "../Components/CameraFollowComponent.h"
+#include "../Components/SpriteComponent.h"
+#include "../Components/KeyboardControlComponent.h"
+#include "../Systems/MovementSystem.h"
+#include "../Systems/RenderSystem.h"
+#include "../Systems/AnimationSystem.h"
+#include "../Systems/CollisionSystem.h"
+#include "../Systems/DamageSystem.h"
+#include "../Systems/KeyboardControlSystem.h"
+#include "../Systems/CameraMovementSystem.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/KeyPressedEvent.h"
 #include <glm/glm.hpp>
@@ -140,15 +140,15 @@ void Game::LoadLevel(int level) {
 
 	Entity tank = registry->CreateEntity();
 	tank.AddComponent<TransformComponent>(glm::vec2(100.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
-	tank.AddComponent<RigidBodyComponent>(glm::vec2(100.0, 0.0));
+	tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
 	tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
 	tank.AddComponent<BoxColliderComponent>(32, 32);
 
-	// Entity truck = registry->CreateEntity();
-	// truck.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
-	// truck.AddComponent<RigidBodyComponent>(glm::vec2(100.0, 0.0));
-	// truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
-	// truck.AddComponent<BoxColliderComponent>(32, 32);
+	Entity truck = registry->CreateEntity();
+	truck.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
+	truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+	truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
+	truck.AddComponent<BoxColliderComponent>(32, 32);
 
 	// Entity tank2 = registry->CreateEntity();
 	// tank2.AddComponent<TransformComponent>(glm::vec2(300.0, 700.0), glm::vec2(entityTweak, entityTweak), 0.0);

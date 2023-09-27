@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ECS.h"
+#include "../ECS/ECS.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/AnimationComponent.h"
 

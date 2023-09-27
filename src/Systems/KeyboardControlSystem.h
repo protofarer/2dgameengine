@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ECS.h"
-#include "../../EventBus/EventBus.h"
-#include "../../Events/KeyPressedEvent.h"
+#include "../ECS/ECS.h"
+#include "../EventBus/EventBus.h"
+#include "../Events/KeyPressedEvent.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/KeyboardControlComponent.h"

@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 #include "../Components/BoxColliderComponent.h"
 #include "../Components/TransformComponent.h"
-#include "../../EventBus/EventBus.h"
-#include"../../Events/CollisionEvent.h"
+#include "../EventBus/EventBus.h"
+#include"../Events/CollisionEvent.h"
 
 class CollisionSystem: public System {
 	public:

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../ECS.h"
+#include "../ECS/ECS.h"
 #include "../Components/BoxColliderComponent.h"
-#include "../../EventBus/EventBus.h"
-#include "../../Events/CollisionEvent.h"
+#include "../EventBus/EventBus.h"
+#include "../Events/CollisionEvent.h"
 
 class DamageSystem: public System {
 	public:
