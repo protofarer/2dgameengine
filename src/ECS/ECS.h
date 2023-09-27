@@ -4,6 +4,7 @@
 #include <vector>
 #include <bitset>
 #include <set>
+#include <deque>
 #include <unordered_map>
 #include <typeindex>
 #include <memory>
@@ -135,6 +136,9 @@ class Registry {
 		std::set<Entity> entitiesToBeAdded;
 		std::set<Entity> entitiesToBeKilled;
 
+		// List of free entity ids that were previously removed
+		std::deque<int> freeIds;
+
 	public:
 		Registry() {
 			Logger::Log("Registry constructor called.");
@@ -148,6 +152,7 @@ class Registry {
 
 		// Entity management
 		Entity CreateEntity();
+		void KillEntity(Entity entity);
 
 		// Component management
 		template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
@@ -161,8 +166,9 @@ class Registry {
 		template <typename TSystem> bool HasSystem() const;
 		template <typename TSystem> TSystem& GetSystem() const;
 
-		// checks the component sig of entity, add entity to systems interested in it
+		// Add and remove entities from their systems
 		void AddEntityToSystems(Entity entity);
+		void RemoveEntityFromSystems(Entity entity);
 };
 
 template <typename TComponent> void System::RequireComponent() {

@@ -5,6 +5,9 @@
 #include "../Components/SpriteComponent.h"
 #include "../../AssetStore/AssetStore.h"
 #include <SDL2/SDL.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
 class RenderSystem: public System {
 	public:
@@ -13,10 +16,40 @@ class RenderSystem: public System {
 		}
 
 		void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore) {
+			// Create vector with both sprite and transform component of each entity
+			struct RenderableEntity {
+				TransformComponent transformComponent;
+				SpriteComponent spriteComponent;
+			};
+			std::vector<RenderableEntity> renderableEntities;
 			for (auto entity: GetSystemEntities()) {
+				RenderableEntity renderableEntity;
+				renderableEntity.spriteComponent = entity.GetComponent<SpriteComponent>();
+				renderableEntity.transformComponent = entity.GetComponent<TransformComponent>();
+				renderableEntities.emplace_back(renderableEntity);
+			}
+
+			// Sort entities of system by z index
+			std::sort(renderableEntities.begin(), renderableEntities.end(), [](const RenderableEntity a, const RenderableEntity b) {
+				return a.spriteComponent.zIndex < b.spriteComponent.zIndex;
+			});
+
+
+			// my sort by z index
+			// std::vector<Entity> entities = GetSystemEntities();
+			// std::sort(entities.begin(), entities.end(), [](const Entity a, const Entity b) {
+			// 	return a.GetComponent<SpriteComponent>().zIndex < b.GetComponent<SpriteComponent>().zIndex;
+			// });
+
+			for (auto entity: renderableEntities) {
+			// for (auto entity: entities) {
 				// Update entity sys based on velocity for every frame
-				auto& transform = entity.GetComponent<TransformComponent>();
-				const auto& sprite = entity.GetComponent<SpriteComponent>();
+				auto& transform = entity.transformComponent;
+				const auto& sprite = entity.spriteComponent;
+
+				// my sort
+				// auto& transform = entity.GetComponent<TransformComponent>();
+				// const auto& sprite = entity.GetComponent<SpriteComponent>();
 
 				// Set source rect of original sprite texture
 				SDL_Rect srcRect = sprite.srcRect;

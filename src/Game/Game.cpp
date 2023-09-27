@@ -4,8 +4,12 @@
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
+#include "../ECS/Components/AnimationComponent.h"
+#include "../ECS/Components/BoxColliderComponent.h"
 #include "../ECS/Systems/MovementSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
+#include "../ECS/Systems/AnimationSystem.h"
+#include "../ECS/Systems/CollisionSystem.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
@@ -17,6 +21,7 @@
 
 Game::Game() {
 	isRunning = false;
+	isModeDebug = false;
 	registry = std::make_unique<Registry>();
 	assetStore = std::make_unique<AssetStore>();
 	Logger::Log("Game construct called.");
@@ -71,27 +76,44 @@ void Game::LoadLevel(int level) {
 	// Add systems that need to be processed
 	registry->AddSystem<MovementSystem>();
 	registry->AddSystem<RenderSystem>();
+	registry->AddSystem<AnimationSystem>();
+	registry->AddSystem<CollisionSystem>();
 
 	// Add assets to asset store
 	assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
 	assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
-	assetStore->AddTexture(renderer, "jungle-tilemap", "./assets/tilemaps/jungle.png");
-
-	SDL_Texture* texture = assetStore->GetTexture("jungle-tilemap");
+	assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
+	assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper.png");
+	assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
 
 	// 1. read map -> 2d array of srcImage indices
 	std::vector<std::vector<int>> matrix = ReadMatrixFromFile("./assets/tilemaps/jungle.map", windowWidth, windowHeight);
+
+	// 2. create tilemap entities, locate them to game world coordinates
 	CreateTileMapping(matrix);
 
+	Entity chopper = registry->CreateEntity();
+	chopper.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(2.0, 2.0), 0.0);
+	chopper.AddComponent<RigidBodyComponent>(glm::vec2(200.0, 0.0));
+	chopper.AddComponent<SpriteComponent>("chopper-image", 2, 32, 32);
+	chopper.AddComponent<AnimationComponent>(2, 15, true);
+
+	Entity radar = registry->CreateEntity();
+	radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 128, 32), glm::vec2(2.0, 2.0), 0.0);
+	radar.AddComponent<SpriteComponent>("radar-image", 2, 64, 64);
+	radar.AddComponent<AnimationComponent>(8, 5, true);
+
 	Entity tank = registry->CreateEntity();
-	tank.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(1.0, 1.0), 45.0);
-	tank.AddComponent<RigidBodyComponent>(glm::vec2(40.0, 0.0));
-	tank.AddComponent<SpriteComponent>("tank-image", 32, 32);
+	tank.AddComponent<TransformComponent>(glm::vec2(300.0, 100.0), glm::vec2(2.0, 2.0), 0.0);
+	tank.AddComponent<RigidBodyComponent>(glm::vec2(-100.0, 0.0));
+	tank.AddComponent<SpriteComponent>("tank-image", 2,  32, 32);
+	tank.AddComponent<BoxColliderComponent>(32, 32);
 
 	Entity truck = registry->CreateEntity();
-	truck.AddComponent<TransformComponent>(glm::vec2(50.0, 100.0), glm::vec2(2.0, 2.0), 0.0);
-	truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 50.0));
-	truck.AddComponent<SpriteComponent>("truck-image", 32, 32);
+	truck.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(2.0, 2.0), 0.0);
+	truck.AddComponent<RigidBodyComponent>(glm::vec2(100.0, 0.0));
+	truck.AddComponent<SpriteComponent>("truck-image", 1, 32, 32);
+	truck.AddComponent<BoxColliderComponent>(32, 32);
 }
 
 void Game::CreateTileMapping(std::vector<std::vector<int>>& matrix) {
@@ -113,34 +135,34 @@ void Game::CreateTileMapping(std::vector<std::vector<int>>& matrix) {
 	std::cout << "tile x span :" << dstTileWidth * n_map_cols << "\n";
 	std::cout << "tile y span :" << dstTileHeight * n_map_rows << "\n";
 
-	const float scaleX = static_cast<float>(dstTileWidth) / srcTileWidth;
+	const float scaleX = static_cast<float>(dstTileWidth) * 1.05 / srcTileWidth;
 	const float scaleY = static_cast<float>(dstTileHeight) / srcTileHeight;
 	std::cout << "scales tilemap tiles: x/y " << scaleX << "/" << scaleY << "\n";
 
 	// 2. iterate through map, each (col, row) index corresponds to some column width = windowWidth / maxCols, row height = windowHeight / maxRows
 	// 2.a create entity -> specify transform, specify sprite (set srcRect x y)
-	for (int i = 0; i < n_map_rows; i++) {
-		for (int j = 0; j < n_map_cols; j++) {
-			Entity tile = registry->CreateEntity();
-			int img_no = matrix[i][j];
+	for (int y = 0; y < n_map_rows; y++) {
+		for (int x = 0; x < n_map_cols; x++) {
+			int img_no = matrix[y][x];
 			int srcRow = img_no / 10;
 			int srcCol = img_no % 10;
 			int srcX = srcTileWidth * srcCol;
 			int srcY = srcTileHeight * srcRow;
-			int posX = dstTileWidth * j;
-			int posY = dstTileHeight * i;
+			int posX = dstTileWidth * x;
+			int posY = dstTileHeight * y;
+			Entity tile = registry->CreateEntity();
 			tile.AddComponent<TransformComponent>(glm::vec2(posX, posY), glm::vec2(scaleX, scaleY), 0.0);
-			tile.AddComponent<SpriteComponent>("jungle-tilemap", 32, 32, srcX, srcY);
+			tile.AddComponent<SpriteComponent>("tilemap-image", 0, 32, 32, srcX, srcY);
 		}
 	}
 }
 
 
 std::vector<std::vector<int>> Game::ReadMatrixFromFile(const std::string& filename, int windowWidth, int windowHeight) {
-	int MAX_ROWS = 20;
-	int MAX_COLS = 25;
+	int mapNumRows = 20;
+	int mapNumCols = 25;
 
-	std::vector<std::vector<int>> matrix(MAX_ROWS, std::vector<int>(MAX_COLS, 0));
+	std::vector<std::vector<int>> matrix(mapNumRows, std::vector<int>(mapNumCols, 0));
 
 	std::ifstream file(filename);
 	if (!file) {
@@ -151,13 +173,13 @@ std::vector<std::vector<int>> Game::ReadMatrixFromFile(const std::string& filena
     std::string line;
     int row = 0;
 
-    while (std::getline(file, line) && row < MAX_ROWS) {
+    while (std::getline(file, line) && row < mapNumRows) {
         std::istringstream iss(line);
         int col = 0;
         std::string token;
 
         while (std::getline(iss, token, ',')) {
-            if (col < MAX_COLS) {
+            if (col < mapNumCols) {
                 try {
                     matrix[row][col] = std::stoi(token); // Convert the token to an integer
                 } catch (const std::invalid_argument& e) {
@@ -193,7 +215,7 @@ void Game::Update() {
 
 	// Ask all systems to update
 	registry->GetSystem<MovementSystem>().Update(dt);
-	// CollisionSystem.Update();
+	registry->GetSystem<CollisionSystem>().Update();
 	// DamageSystem.Update();
 
 	// Update registry to process entities pending add/delete
@@ -205,6 +227,10 @@ void Game::Render() {
 	SDL_RenderClear(renderer);
 
 	registry->GetSystem<RenderSystem>().Update(renderer, assetStore);
+	registry->GetSystem<AnimationSystem>().Update();
+	if (isModeDebug) {
+		registry->GetSystem<CollisionSystem>().Render(renderer);
+	}
 
 	SDL_RenderPresent(renderer); // paints window
 }
@@ -217,9 +243,11 @@ void Game::ProcessInput() {
 				isRunning = false;
 				break;
 			case SDL_KEYDOWN:
-				if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
-					isRunning = false;
-				}
+				switch(sdlEvent.key.keysym.sym)
+					case SDLK_ESCAPE:
+						isRunning = false;
+					case SDLK_d:
+						isModeDebug = !isModeDebug;
 				break;
 		}
 	}
