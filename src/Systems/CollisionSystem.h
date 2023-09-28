@@ -41,14 +41,14 @@ class CollisionSystem: public System {
 					int bTop = btx.position.y + bcx.offset.y;
 					int bBottom = btx.position.y + bcx.offset.y + (bcx.height * btx.scale.y);
 
-					isColliding_ = (
+					bool isColliding = (
 						aLeft < bRight &&
 						aRight > bLeft &&
 						aTop < bBottom &&
 						aBottom > bTop
 					);
 
-					if(isColliding_) {
+					if(isColliding) {
 						Logger::Log("Entity " + std::to_string(a.GetId()) + " is colliding with Entity " + std::to_string(b.GetId()));
 						eventBus->EmitEvent<CollisionEvent>(a, b);
 					}
@@ -61,23 +61,15 @@ class CollisionSystem: public System {
 			for (auto entity: GetSystemEntities()) {
 				auto eTx = entity.GetComponent<TransformComponent>();
 				auto eCx = entity.GetComponent<BoxColliderComponent>();
-				if (isColliding_) {
-					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-				} else {
-					SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-				}
+				SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
 				SDL_Rect colliderRect = { 
 					static_cast<int>(eTx.position.x + eCx.offset.x - camera.x), 
 					static_cast<int>(eTx.position.y + eCx.offset.y - camera.y), 
 					static_cast<int>(eCx.width * eTx.scale.x), 
 					static_cast<int>(eCx.height * eTx.scale.y) 
 				};
-				
 
 				SDL_RenderDrawRect(renderer, &colliderRect);
 			}
 		}
-
-		private:
-			bool isColliding_;
 };

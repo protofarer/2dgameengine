@@ -9,6 +9,8 @@
 #include "../Components/CameraFollowComponent.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/KeyboardControlComponent.h"
+#include "../Components/ProjectileEmitterComponent.h"
+#include "../Components/HealthComponent.h"
 #include "../Systems/MovementSystem.h"
 #include "../Systems/RenderSystem.h"
 #include "../Systems/AnimationSystem.h"
@@ -16,6 +18,8 @@
 #include "../Systems/DamageSystem.h"
 #include "../Systems/KeyboardControlSystem.h"
 #include "../Systems/CameraMovementSystem.h"
+#include "../Systems/ProjectileEmitSystem.h"
+#include "../Systems/ProjectileLifecycleSystem.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/KeyPressedEvent.h"
 #include <glm/glm.hpp>
@@ -38,7 +42,7 @@ double Game::tileTweak = 4.0;
 
 Game::Game() {
 	isRunning = false;
-	isModeDebug = false;
+	isDebug = false;
 	registry = std::make_unique<Registry>();
 	assetStore = std::make_unique<AssetStore>();
 	eventBus = std::make_unique<EventBus>();
@@ -105,6 +109,8 @@ void Game::LoadLevel(int level) {
 	registry->AddSystem<DamageSystem>();
 	registry->AddSystem<KeyboardControlSystem>();
 	registry->AddSystem<CameraMovementSystem>();
+	registry->AddSystem<ProjectileEmitSystem>();
+	registry->AddSystem<ProjectileLifecycleSystem>();
 
 	// Add assets to asset store
 	assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -112,6 +118,7 @@ void Game::LoadLevel(int level) {
 	assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
 	assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
 	assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
+	assetStore->AddTexture(renderer, "bullet-image", "./assets/images/bullet.png");
 
 	// 1. read map -> 2d array of srcImage indices
 	std::vector<std::vector<int>> matrix = ReadMatrixFromFile("./assets/tilemaps/jungle.map", windowWidth, windowHeight);
@@ -119,7 +126,7 @@ void Game::LoadLevel(int level) {
 	// 2. create tilemap entities, locate them to game world coordinates
 	CreateTileMapEntities(matrix);
 
-	double vel = 1000;
+	double vel = 100;
 	Entity chopper = registry->CreateEntity();
 	chopper.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(entityTweak, entityTweak), 0.0);
 	chopper.AddComponent<RigidBodyComponent>(glm::vec2(vel, 0.0));
@@ -132,6 +139,8 @@ void Game::LoadLevel(int level) {
 		glm::vec2(-vel, 0)
 	);
 	chopper.AddComponent<CameraFollowComponent>();
+	chopper.AddComponent<HealthComponent>(100);
+	chopper.AddComponent<ProjectileEmitterComponent>(glm::vec2(150.0, 150.0), 0, 10000, 0, true);
 
 	Entity radar = registry->CreateEntity();
 	radar.AddComponent<TransformComponent>(glm::vec2(windowWidth - 128, 32), glm::vec2(2.0, 2.0), 0.0);
@@ -143,28 +152,56 @@ void Game::LoadLevel(int level) {
 	tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
 	tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
 	tank.AddComponent<BoxColliderComponent>(32, 32);
+	tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 0, false);
+	tank.AddComponent<HealthComponent>(100);
 
 	Entity truck = registry->CreateEntity();
 	truck.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
 	truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
 	truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
 	truck.AddComponent<BoxColliderComponent>(32, 32);
+	truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
+	truck.AddComponent<HealthComponent>(100);
 
-	// Entity tank2 = registry->CreateEntity();
-	// tank2.AddComponent<TransformComponent>(glm::vec2(300.0, 700.0), glm::vec2(entityTweak, entityTweak), 0.0);
-	// tank2.AddComponent<RigidBodyComponent>(glm::vec2(-100.0, 0.0));
-	// tank2.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
-	// tank2.AddComponent<BoxColliderComponent>(32, 32);
+	Entity tank2 = registry->CreateEntity();
+	tank2.AddComponent<TransformComponent>(glm::vec2(300.0, 700.0), glm::vec2(entityTweak, entityTweak), 0.0);
+	tank2.AddComponent<RigidBodyComponent>(glm::vec2(-100.0, 0.0));
+	tank2.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+	tank2.AddComponent<BoxColliderComponent>(32, 32);
 
-	// Entity truck2 = registry->CreateEntity();
-	// truck2.AddComponent<TransformComponent>(glm::vec2(100.0, 400.0), glm::vec2(entityTweak, entityTweak), 0.0);
-	// truck2.AddComponent<RigidBodyComponent>(glm::vec2(100.0, 0.0));
-	// truck2.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
-	// truck2.AddComponent<BoxColliderComponent>(32, 32);
+	Entity truck2 = registry->CreateEntity();
+	truck2.AddComponent<TransformComponent>(glm::vec2(100.0, 400.0), glm::vec2(entityTweak, entityTweak), 0.0);
+	truck2.AddComponent<RigidBodyComponent>(glm::vec2(100.0, 0.0));
+	truck2.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
+	truck2.AddComponent<BoxColliderComponent>(32, 32);
 }
 
 void Game::Setup() {
 	LoadLevel(1);
+}
+
+void Game::ProcessInput() {
+	SDL_Event sdlEvent; // struct
+	while (SDL_PollEvent(&sdlEvent)) {
+		switch(sdlEvent.type) {
+			case SDL_QUIT:
+				isRunning = false;
+				break;
+			case SDL_KEYDOWN:
+				switch(sdlEvent.key.keysym.sym) {
+					case SDLK_ESCAPE:
+						isRunning = false;
+						break;
+					case SDLK_d:
+						isDebug = !isDebug;
+						break;
+					default:
+						eventBus->EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
+						break;
+				}
+				break;
+		}
+	}
 }
 
 void Game::Update() {
@@ -187,6 +224,7 @@ void Game::Update() {
 	// Frame by frame binding
 	registry->GetSystem<DamageSystem>().SubscribeToEvents(eventBus);
 	registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(eventBus);
+	registry->GetSystem<ProjectileEmitSystem>().SubscribeToEvents(eventBus);
 
 	// Update registry to process entities pending add/delete
 	registry->Update();
@@ -196,6 +234,8 @@ void Game::Update() {
 	registry->GetSystem<AnimationSystem>().Update();
 	registry->GetSystem<CollisionSystem>().Update(eventBus);
 	registry->GetSystem<CameraMovementSystem>().Update(camera);
+	registry->GetSystem<ProjectileEmitSystem>().Update();
+	registry->GetSystem<ProjectileLifecycleSystem>().Update();
 }
 
 void Game::Render() {
@@ -203,35 +243,11 @@ void Game::Render() {
 	SDL_RenderClear(renderer);
 
 	registry->GetSystem<RenderSystem>().Update(renderer, assetStore, camera);
-	if (isModeDebug) {
+	if (isDebug) {
 		registry->GetSystem<CollisionSystem>().Render(renderer, camera);
 	}
 
 	SDL_RenderPresent(renderer); // paints window
-}
-
-void Game::ProcessInput() {
-	SDL_Event sdlEvent; // struct
-	while (SDL_PollEvent(&sdlEvent)) {
-		switch(sdlEvent.type) {
-			case SDL_QUIT:
-				isRunning = false;
-				break;
-			case SDL_KEYDOWN:
-				switch(sdlEvent.key.keysym.sym) {
-					case SDLK_ESCAPE:
-						isRunning = false;
-						break;
-					case SDLK_d:
-						isModeDebug = !isModeDebug;
-						break;
-					default:
-						eventBus->EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
-						break;
-				}
-				break;
-		}
-	}
 }
 
 void Game::Run() {
@@ -269,7 +285,6 @@ void Game::CreateTileMapEntities(std::vector<std::vector<int>>& matrix) {
 
 	mapWidth = n_map_cols * tileSize * tileTweak;
 	mapHeight = n_map_rows * tileSize * tileTweak;
-	std::cout << "map W/H: " << mapWidth << "/" << mapHeight << "\n";
 
 	// 2. iterate through map, each (col, row) index corresponds to some column width = windowWidth / maxCols, row height = windowHeight / maxRows
 	// 2.a create entity -> specify transform, specify sprite (set srcRect x y)
