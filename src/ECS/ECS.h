@@ -58,6 +58,12 @@ class Entity {
 		template <typename TComponent> bool HasComponent() const;
 		template <typename TComponent> TComponent& GetComponent() const;
 
+		// Tag and group management via entity
+		void Tag(const std::string& tag) const;
+		bool HasTag(const std::string& tag) const;
+		void Group(const std::string& group) const;
+		bool BelongsToGroup(const std::string& group) const;
+
 		class Registry* registry; // forward declaration so Entity has pointer access to Registry
 };
 
@@ -136,6 +142,14 @@ class Registry {
 		std::set<Entity> entitiesToBeAdded;
 		std::set<Entity> entitiesToBeKilled;
 
+		// Entity tags (1 tag name per entity)
+		std::unordered_map<std::string, Entity> entityPerTag;
+		std::unordered_map<int, std::string> tagPerEntity;
+
+		// Entity groups (a set of entities per group name)
+		std::unordered_map<std::string, std::set<Entity>> entitiesPerGroup;
+		std::unordered_map<int, std::string> groupPerEntity;
+
 		// List of free entity ids that were previously removed
 		std::deque<int> freeIds;
 
@@ -169,6 +183,18 @@ class Registry {
 		// Add and remove entities from their systems
 		void AddEntityToSystems(Entity entity);
 		void RemoveEntityFromSystems(Entity entity);
+
+		// Tag Management
+		void TagEntity(Entity entity, const std::string& tag);
+		bool EntityHasTag(Entity entity, const std::string& tag) const;
+		Entity GetEntityByTag(const std::string& tag) const;
+		void RemoveEntityTag(Entity entity);
+
+		// Group Management
+		void GroupEntity(Entity entity, const std::string& group);
+		bool EntityBelongsToGroup(Entity entity, const std::string& group) const;
+		std::vector<Entity> GetEntitiesByGroup(const std::string& group) const;
+		void RemoveEntityGroup(Entity entity);
 };
 
 template <typename TComponent> void System::RequireComponent() {

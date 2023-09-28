@@ -128,6 +128,7 @@ void Game::LoadLevel(int level) {
 
 	double vel = 100;
 	Entity chopper = registry->CreateEntity();
+	chopper.Tag("player");
 	chopper.AddComponent<TransformComponent>(glm::vec2(10.0, 10.0), glm::vec2(entityTweak, entityTweak), 0.0);
 	chopper.AddComponent<RigidBodyComponent>(glm::vec2(vel, 0.0));
 	chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
@@ -148,6 +149,7 @@ void Game::LoadLevel(int level) {
 	radar.AddComponent<AnimationComponent>(8, 5, true);
 
 	Entity tank = registry->CreateEntity();
+	tank.Group("enemies");
 	tank.AddComponent<TransformComponent>(glm::vec2(100.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
 	tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
 	tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
@@ -156,6 +158,7 @@ void Game::LoadLevel(int level) {
 	tank.AddComponent<HealthComponent>(100);
 
 	Entity truck = registry->CreateEntity();
+	truck.Group("enemies");
 	truck.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
 	truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
 	truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
@@ -298,6 +301,7 @@ void Game::CreateTileMapEntities(std::vector<std::vector<int>>& matrix) {
 			int posX = tileSize * tileTweak * x;
 			int posY = tileSize * tileTweak * y;
 			Entity tile = registry->CreateEntity();
+			tile.Group("tiles");
 			tile.AddComponent<TransformComponent>(glm::vec2(posX, posY), glm::vec2(tileTweak, tileTweak), 0.0);
 			tile.AddComponent<SpriteComponent>("tilemap-image", 32, 32, 0, false, srcX, srcY);
 		}
