@@ -102,10 +102,19 @@ class IPool {
 template <typename T>
 class Pool: public IPool {
 	private:
+		// We keep track of the vector of objects and current number of elements
 		std::vector<T> data;
+		int size;
+
+		// Helper maps track entity ids fper index, ensuring packed data
+		std::unordered_map<int, int> entityIdToIndex;
+		std::unordered_map<int, int> indexToEntityId;
 
 	public:
-		Pool(int size = 100) { data.resize(size); }
+		Pool(int capacity = 100) { 
+			size = 0;
+			data.resize(capacity); 
+		}
 		virtual ~Pool() = default;
 
 		bool isEmpty() const { return data.empty(); }

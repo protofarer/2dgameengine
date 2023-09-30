@@ -61,6 +61,12 @@
 		"bitset": "cpp",
 		"cwctype": "cpp",
 		"unordered_map": "cpp",
-		"map": "cpp"
+		"map": "cpp",
+		"typeindex": "cpp",
+		"set": "cpp",
+		"__hash_table": "cpp",
+		"__node_handle": "cpp",
+		"__tree": "cpp",
+		"ios": "cpp"
 	}
 }

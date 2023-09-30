@@ -132,9 +132,11 @@ void Registry::GroupEntity(Entity entity, const std::string& group) {
 	groupPerEntity.emplace(entity.GetId(), group);
 }
 
-// Pizzi uses entitiesPerGroup instead..
 bool Registry::EntityBelongsToGroup(Entity entity, const std::string& group) const {
-	auto groupEntities = entitiesPerGroup.at(group);
+	if (entitiesPerGroup.find(group) == entitiesPerGroup.end()) {
+		return false;
+	}
+	auto groupEntities = entitiesPerGroup.at(group); // ! this panicks when group not yet created, eg no projectile emitted yet and this function is called to check "projectiles" group in DamageSystem :: fixed, see above line
 	return groupEntities.find(entity.GetId()) != groupEntities.end();
 }
 

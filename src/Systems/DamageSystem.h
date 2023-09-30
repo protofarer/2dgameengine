@@ -2,6 +2,8 @@
 
 #include "../ECS/ECS.h"
 #include "../Components/BoxColliderComponent.h"
+#include "../Components/ProjectileComponent.h"
+#include "../Components/HealthComponent.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/CollisionEvent.h"
 
@@ -16,12 +18,53 @@ class DamageSystem: public System {
 		}
 
 		void onCollision(CollisionEvent& event) {
-			Logger::Log("The damage system received an event collision between entities " 
-				+ std::to_string(event.a.GetId()) + " and " + std::to_string(event.b.GetId()));
-			// event.a.Kill();
-			// event.b.Kill();
+			Entity a = event.a;
+			Entity b = event.b;
+			Logger::Log("DAMAGE Entity " 
+				+ std::to_string(a.GetId()) + " and " + std::to_string(b.GetId()));
+
+			if (a.BelongsToGroup("projectiles") && b.HasTag("player")) {
+				OnProjectileHitsPlayer(a, b);
+			}
+
+			if (a.HasTag("player") && b.BelongsToGroup("projectiles")) {
+				OnProjectileHitsPlayer(b, a);
+			}
+
+			if (a.BelongsToGroup("projectiles") && b.BelongsToGroup("enemies")) {
+				OnProjectileHitsEnemy(a, b);
+			}
+
+			if (a.BelongsToGroup("enemies") && b.BelongsToGroup("projectiles")) {
+				OnProjectileHitsEnemy(b, a);
+			}
 		}
 
+		void OnProjectileHitsPlayer(Entity projectile, Entity player) {
+			auto projectileComponent = projectile.GetComponent<ProjectileComponent>();
+
+			if (!projectileComponent.isFriendly) {
+				auto& health = player.GetComponent<HealthComponent>();
+				health.healthPercentage -= projectileComponent.hitPercentDamage;
+				if (health.healthPercentage <= 0) {
+					player.Kill();
+				}
+				projectile.Kill();
+			}
+		}
+
+		void OnProjectileHitsEnemy(Entity projectile, Entity enemy) {
+			auto projectileComponent = projectile.GetComponent<ProjectileComponent>();
+
+			if (projectileComponent.isFriendly) {
+				auto& health = enemy.GetComponent<HealthComponent>();
+				health.healthPercentage -= projectileComponent.hitPercentDamage;
+				if (health.healthPercentage <= 0) {
+					enemy.Kill();
+				}
+				projectile.Kill();
+			}
+		}
 		void Update() {
 
 		}
