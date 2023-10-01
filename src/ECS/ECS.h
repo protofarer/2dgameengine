@@ -96,7 +96,8 @@ class System {
 ///////////////////////////////////////////////////////////////
 class IPool {
 	public:
-		virtual ~IPool() {} // forces class to be abstract
+		virtual ~IPool() = default; // forces class to be abstract
+		virtual void RemoveEntityFromPool(int entityId) = 0; // pure virtual method, must override impl in Pool
 };
 
 template <typename T>
@@ -117,13 +118,77 @@ class Pool: public IPool {
 		}
 		virtual ~Pool() = default;
 
-		bool isEmpty() const { return data.empty(); }
-		int GetSize() const { return data.size(); }
-		void Resize(int n) { data.resize(n); }
-		void Add(T object) { data.push_back(object); }
-		void Set(int index, T object) { data[index] = object; }
-		T& Get(int index) { return static_cast<T&>(data[index]); }
-		T& operator [](unsigned int index) const { return data[index]; }
+		bool IsEmpty() const { 
+			return size == 0; 
+		}
+
+		int GetSize() const { 
+			return size; 
+		}
+
+		void Resize(int n) { 
+			data.resize(n); 
+		}
+
+		void Clear() { 
+			data.clear(); 
+			size = 0; 
+		}
+
+		void Add(T object) { 
+			data.push_back(object); 
+		}
+
+		void Set(int entityId, T object) { 
+			if (entityIdToIndex.find(entityId) != entityIdToIndex.end()) {
+				// If entity already exists, replace component obj
+				int index = entityIdToIndex[entityId];
+				data[index] = object;
+			} else {
+				// when add new object, keep track of entity ids and their vector index
+				int index = size;
+				entityIdToIndex.emplace(entityId, index);
+				indexToEntityId.emplace(index, entityId);
+				if (index >= data.capacity()) {
+					// double capacity when needed
+					data.resize(size * 2);
+				}
+				data[index] = object;
+				size++;
+			}
+		}
+
+		void Remove(int entityId) {
+			// remove from entityIdToIndex by simple emplace, if it exists
+			int indexOfRemoved = entityIdToIndex[entityId];
+			int indexOfLast = size - 1;
+			data[indexOfRemoved] = data[indexOfLast];	// efficiently swap in last element into removed entity's position, thus achieving packing
+
+			// account for change in tracker hashmaps (entityId <-> data index)
+			int entityIdOfLastElement = indexToEntityId[indexOfLast];
+			entityIdToIndex[entityIdOfLastElement] = indexOfRemoved;
+			indexToEntityId[indexOfRemoved] = entityIdOfLastElement;
+
+			entityIdToIndex.erase(entityId);
+			indexToEntityId.erase(indexOfLast);
+
+			size--;
+		}
+
+		void RemoveEntityFromPool(int entityId) override {
+			if (entityIdToIndex.find(entityId) != entityIdToIndex.end()) {
+				Remove(entityId);
+			}
+		}
+
+		T& Get(int entityId) { 
+			int index = entityIdToIndex[entityId];
+			return static_cast<T&>(data[index]);
+		}
+
+		T& operator [](unsigned int index) const { 
+			return data[index]; 
+		}
 };
 
 ///////////////////////////////////////////////////////////////
@@ -256,13 +321,15 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 	// ? is type cast really needed?
 	std::shared_ptr<Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
 
-	if (entityId >= componentPool->GetSize()) {
-		componentPool->Resize(numEntities);
-	}
-	
+	// superceded by the new tracker hashmaps and updated Pool::Set call below
+	// if (entityId >= componentPool->GetSize()) {
+	// 	componentPool->Resize(numEntities);
+	// }
 
 	// forward args to constructor
 	TComponent newComponent(std::forward<TArgs>(args)...);
+
+	componentPool->Set(entityId, newComponent);
 
 	// remember ea Component is strictly data related to entity
 	componentPool->Set(entityId, newComponent);
@@ -277,8 +344,15 @@ template <typename TComponent>
 void Registry::RemoveComponent(Entity entity) {
 	const auto componentId = Component<TComponent>::GetId();
 	const auto entityId = entity.GetId();
+
+
+	std::shared_ptr<Pool<TComponent>> componentPool = std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
+	componentPool->Remove(entityId);
+
+	// superceded by tracker hashmap and new Pool::Remove, below
 	entityComponentSignatures[entityId].set(componentId, false);
-	// Logger::Log("Component id = " + std::to_string(componentId) + " was removed from entity id " + std::to_string(entityId));
+
+	Logger::Log("Component id = " + std::to_string(componentId) + " was removed from entity id " + std::to_string(entityId));
 };
 
 template <typename TComponent>
