@@ -43,7 +43,7 @@ class RenderHealthBarSystem: public System {
 
 				SDL_QueryTexture(texture, NULL, NULL, &labelWidth, &labelHeight);
 
-				double labelPosX = (transform.position.x) + (sprite.width * transform.scale.x / 2) - 10 - camera.x;
+				double labelPosX = (transform.position.x) + (sprite.width * transform.scale.x / 2) - 15 - camera.x;
 				double labelPosY = (transform.position.y) - 25 - camera.y;
 				SDL_Rect dstRectLabel = {
 					static_cast<int>(labelPosX),

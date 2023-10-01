@@ -28,7 +28,8 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <iostream>
+#include <imgui/imgui.h>
+#include <imgui/imgui_sdl.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -68,12 +69,8 @@ void Game::Initialize() {
 	}
 	SDL_DisplayMode displayMode;
 	SDL_GetCurrentDisplayMode(0, &displayMode);
-
 	windowWidth = displayMode.w;
 	windowHeight = displayMode.h;
-	std::cout << "winWid " << windowWidth << " winHeight " << windowHeight <<"\n";
-
-
 	window = SDL_CreateWindow(
 		NULL,
 		SDL_WINDOWPOS_CENTERED,
@@ -86,16 +83,18 @@ void Game::Initialize() {
 		Logger::Err("Error creating SDL window.");
 		return;
 	}
-
-	renderer = SDL_CreateRenderer(
-		window, 
-		-1, 
+	renderer = SDL_CreateRenderer(window, -1, 
 		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC // use both if possible
 	);
 	if (!renderer) {
 		Logger::Err("Error creating SDL renderer.");
 		return;
 	}
+
+	// Init ImGui context
+	ImGui::CreateContext();
+	ImGuiSDL::Initialize(renderer, windowWidth, windowHeight);
+
 	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
 	// Initialize camera view with entire screen area
@@ -273,6 +272,11 @@ void Game::Render() {
 	registry->GetSystem<RenderHealthBarSystem>().Update(renderer, assetStore, camera);
 	if (isDebug) {
 		registry->GetSystem<CollisionSystem>().Render(renderer, camera);
+		
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow();
+		ImGui::Render();
+		ImGuiSDL::Render(ImGui::GetDrawData());
 	}
 
 	SDL_RenderPresent(renderer); // paints window
@@ -288,6 +292,8 @@ void Game::Run() {
 }
 
 void Game::Destroy() {
+	ImGuiSDL::Deinitialize();
+	ImGui::DestroyContext();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
