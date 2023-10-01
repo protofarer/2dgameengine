@@ -23,6 +23,7 @@
 #include "../Systems/ProjectileLifecycleSystem.h"
 #include "../Systems/RenderTextSystem.h"
 #include "../Systems/RenderHealthBarSystem.h"
+#include "../Systems/RenderGUISystem.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/KeyPressedEvent.h"
 #include <glm/glm.hpp>
@@ -30,6 +31,7 @@
 #include <SDL2/SDL_image.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_sdl.h>
+#include <imgui/imgui_impl_sdl.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -42,7 +44,7 @@ int Game::windowHeight;
 int Game::mapWidth;
 int Game::mapHeight;
 double Game::entityTweak = 2.0;
-double Game::tileTweak = 4.0;
+double Game::tileTweak = 3.5;
 
 Game::Game() {
 	isRunning = false;
@@ -119,6 +121,7 @@ void Game::LoadLevel(int level) {
 	registry->AddSystem<ProjectileLifecycleSystem>();
 	registry->AddSystem<RenderTextSystem>();
 	registry->AddSystem<RenderHealthBarSystem>();
+	registry->AddSystem<RenderGUISystem>();
 
 	// Add assets to asset store
 	assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -127,6 +130,7 @@ void Game::LoadLevel(int level) {
 	assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
 	assetStore->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
 	assetStore->AddTexture(renderer, "bullet-image", "./assets/images/bullet.png");
+	assetStore->AddTexture(renderer, "tree-image", "./assets/images/tree.png");
 	assetStore->AddFont("charriot-font", "./assets/fonts/charriot.ttf", 20);
 	assetStore->AddFont("arial-font-10", "./assets/fonts/arial.ttf", 10);
 	assetStore->AddFont("arial-font-15", "./assets/fonts/arial.ttf", 15);
@@ -160,10 +164,20 @@ void Game::LoadLevel(int level) {
 	radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 2, true);
 	radar.AddComponent<AnimationComponent>(8, 5, true);
 
+	Entity treeA = registry->CreateEntity();
+	treeA.AddComponent<TransformComponent>(glm::vec2(windowWidth - 128, 32), glm::vec2(2.0, 2.0), 0.0);
+	treeA.AddComponent<SpriteComponent>("tree-image", 16, 32, 2, true);
+	treeA.AddComponent<BoxColliderComponent>(16, 32);
+
+	Entity treeB = registry->CreateEntity();
+	treeA.AddComponent<TransformComponent>(glm::vec2(windowWidth - 128, 32), glm::vec2(2.0, 2.0), 0.0);
+	treeA.AddComponent<SpriteComponent>("tree-image", 16, 32, 2, true);
+	treeA.AddComponent<BoxColliderComponent>(16, 32);
+
 	Entity tank = registry->CreateEntity();
 	tank.Group("enemies");
-	tank.AddComponent<TransformComponent>(glm::vec2(100.0, 100.0), glm::vec2(entityTweak, entityTweak), 0.0);
-	tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+	tank.AddComponent<TransformComponent>(glm::vec2(500.0, 700.0), glm::vec2(entityTweak, entityTweak), 0.0);
+	tank.AddComponent<RigidBodyComponent>(glm::vec2(300.0, 0.0));
 	tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
 	tank.AddComponent<BoxColliderComponent>(32, 32);
 	tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 50, false);
@@ -208,6 +222,16 @@ void Game::Setup() {
 void Game::ProcessInput() {
 	SDL_Event sdlEvent; // struct
 	while (SDL_PollEvent(&sdlEvent)) {
+		// ImGui SDL input
+		ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
+		ImGuiIO& io = ImGui::GetIO();
+		int mouseX, mouseY;
+		const int buttons = SDL_GetMouseState(&mouseX, &mouseY);
+		io.MousePos = ImVec2(mouseX, mouseY);
+		io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+		io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
+		// Handle core SDL (close window, key pressed, etc)
 		switch(sdlEvent.type) {
 			case SDL_QUIT:
 				isRunning = false;
@@ -272,11 +296,7 @@ void Game::Render() {
 	registry->GetSystem<RenderHealthBarSystem>().Update(renderer, assetStore, camera);
 	if (isDebug) {
 		registry->GetSystem<CollisionSystem>().Render(renderer, camera);
-		
-		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
-		ImGui::Render();
-		ImGuiSDL::Render(ImGui::GetDrawData());
+		registry->GetSystem<RenderGUISystem>().Update(registry);
 	}
 
 	SDL_RenderPresent(renderer); // paints window
