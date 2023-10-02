@@ -25,14 +25,14 @@
 #include <vector>
 
 // set to constant (dont use displaymode dims) to use as logical dimensions
-int Game::logicalWidth = 800;
-int Game::logicalHeight = 600;
+// int Game::logicalWidth = 800;
+// int Game::logicalHeight = 600;
 int Game::windowWidth;
 int Game::windowHeight;
 int Game::mapWidth;
 int Game::mapHeight;
-double Game::entityTweak = 2.0;
-double Game::tileTweak = 3.5;
+// double Game::entityTweak = 2.0;
+// double Game::tileTweak = 3.5;
 
 Game::Game() {
 	isRunning = false;
