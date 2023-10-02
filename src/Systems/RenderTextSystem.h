@@ -29,8 +29,8 @@ class RenderTextSystem: public System {
 				SDL_QueryTexture(texture, NULL, NULL, &labelWidth, &labelHeight);
 
 				SDL_Rect dstRect = {
-					static_cast<int>(textlabel.position.x) - (!textlabel.isFixed ? camera.x : 0),
-					static_cast<int>(textlabel.position.y) - (!textlabel.isFixed ? camera.y : 0),
+					static_cast<int>(textlabel.position.x) - (textlabel.isFixed ? 0 : camera.x),
+					static_cast<int>(textlabel.position.y) - (textlabel.isFixed ? 0 : camera.y),
 					labelWidth,
 					labelHeight
 				};

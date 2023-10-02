@@ -79,7 +79,8 @@
 		"x",
 		"user",
 		"config",
-		"entities"
+		"entities",
+		"set_position"
 	],
 	"C_Cpp.errorSquiggles": "disabled"
 }

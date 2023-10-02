@@ -30,8 +30,10 @@ class RenderHealthBarSystem: public System {
 					healthBarColor = { 255, 0, 0 };
 				}
 
+				// Render Health Percentage
+
 				SDL_Surface* surface = TTF_RenderText_Blended(
-					assetStore->GetFont("arial-font-15"), 
+					assetStore->GetFont("pico8-font-5"), 
 					std::to_string(health.healthPercentage).c_str(), 
 					healthBarColor
 				);
@@ -43,8 +45,8 @@ class RenderHealthBarSystem: public System {
 
 				SDL_QueryTexture(texture, NULL, NULL, &labelWidth, &labelHeight);
 
-				double labelPosX = (transform.position.x) + (sprite.width * transform.scale.x / 2) - 15 - camera.x;
-				double labelPosY = (transform.position.y) - 25 - camera.y;
+				double labelPosX = (transform.position.x) + (sprite.width * transform.scale.x / 2) - 5 - camera.x;
+				double labelPosY = (transform.position.y) - 20 - camera.y;
 				SDL_Rect dstRectLabel = {
 					static_cast<int>(labelPosX),
 					static_cast<int>(labelPosY),
@@ -54,6 +56,8 @@ class RenderHealthBarSystem: public System {
 				SDL_RenderCopy(renderer, texture, NULL, &dstRectLabel);
 
 				SDL_DestroyTexture(texture);
+
+				// Render Health Bar
 
 				int barWidth = sprite.width * transform.scale.x;
 				int barHeight = sprite.height / 5;

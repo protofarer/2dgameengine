@@ -10,6 +10,7 @@
 #include "../Components/ProjectileEmitterComponent.h"
 #include "../Components/HealthComponent.h"
 #include "../Components/TextLabelComponent.h"
+#include "../Components/ScriptComponent.h"
 #include <fstream>
 #include <sstream>
 #include <sol/sol.hpp>
@@ -228,7 +229,7 @@ void LevelLoader::LoadLevel(
 						static_cast<int>(entity["components"]["health"]["health_percentage"].get_or(100))
 					);
 			}
-			
+
 			// ProjectileEmitter
 			sol::optional<sol::table> projectileEmitter = entity["components"]["projectile_emitter"];
 			if (projectileEmitter != sol::nullopt) {
@@ -271,6 +272,12 @@ void LevelLoader::LoadLevel(
 							entity["components"]["keyboard_controller"]["left_velocity"]["y"]
 						)
 					);
+			}
+			// Script
+			sol::optional<sol::table> script = entity["components"]["on_update_script"];
+			if (script != sol::nullopt) {
+					sol::function func = entity["components"]["on_update_script"][0];
+					newEntity.AddComponent<ScriptComponent>(func);
 			}
 		}
 		i++;

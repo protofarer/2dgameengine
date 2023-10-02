@@ -14,6 +14,7 @@
 #include "../Systems/RenderTextSystem.h"
 #include "../Systems/RenderHealthBarSystem.h"
 #include "../Systems/RenderGUISystem.h"
+#include "../Systems/ScriptSystem.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/KeyPressedEvent.h"
 #include <glm/glm.hpp>
@@ -110,8 +111,12 @@ void Game::Setup() {
 	registry->AddSystem<RenderTextSystem>();
 	registry->AddSystem<RenderHealthBarSystem>();
 	registry->AddSystem<RenderGUISystem>();
+	registry->AddSystem<ScriptSystem>();
 
-	lua.open_libraries(sol::lib::base, sol::lib::math);
+	// Create C++ -> Lua bindings
+	registry->GetSystem<ScriptSystem>().CreateLuaBindings(lua);
+
+	lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::os);
 	LevelLoader loader; // why not pass pointer to registry/assetSt/renderer in constructor?
 	loader.LoadLevel(lua, registry, assetStore, renderer, 1);
 }
@@ -183,6 +188,7 @@ void Game::Update() {
 	registry->GetSystem<CameraMovementSystem>().Update(camera);
 	registry->GetSystem<ProjectileEmitSystem>().Update();
 	registry->GetSystem<ProjectileLifecycleSystem>().Update();
+	registry->GetSystem<ScriptSystem>().Update(dt, SDL_GetTicks());
 }
 
 void Game::Render() {
