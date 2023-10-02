@@ -6,6 +6,7 @@
 #include "../Components/HealthComponent.h"
 #include "../EventBus/EventBus.h"
 #include "../Events/CollisionEvent.h"
+#include <iostream>
 
 class DamageSystem: public System {
 	public:

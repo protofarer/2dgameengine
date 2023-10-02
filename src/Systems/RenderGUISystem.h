@@ -25,7 +25,7 @@ class RenderGUISystem: public System {
 					tank.Group("enemies");
 					tank.AddComponent<TransformComponent>(glm::vec2(enemyXPos, enemyYPos), glm::vec2(2.0, 2.0), 0.0);
 					tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-					tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+					tank.AddComponent<SpriteComponent>("tank-texture", 32, 32, 1);
 					tank.AddComponent<BoxColliderComponent>(32, 32);
 					tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 50, false);
 					tank.AddComponent<HealthComponent>(100);

@@ -68,5 +68,18 @@
 		"__node_handle": "cpp",
 		"__tree": "cpp",
 		"ios": "cpp"
-	}
+	},
+	"Lua.diagnostics.globals": [
+		"factorial1",
+		"factorial2",
+		"factorial3",
+		"a",
+		"b",
+		"c",
+		"x",
+		"user",
+		"config",
+		"entities"
+	],
+	"C_Cpp.errorSquiggles": "disabled"
 }

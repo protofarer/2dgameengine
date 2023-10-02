@@ -26,6 +26,16 @@ class RenderSystem: public System {
 				RenderableEntity renderableEntity;
 				renderableEntity.spriteComponent = entity.GetComponent<SpriteComponent>();
 				renderableEntity.transformComponent = entity.GetComponent<TransformComponent>();
+				bool isEntityOutsideCameraView = (
+					renderableEntity.transformComponent.position.x + (renderableEntity.transformComponent.scale.x * renderableEntity.spriteComponent.width) < camera.x ||
+					renderableEntity.transformComponent.position.x > camera.x + camera.w ||
+					renderableEntity.transformComponent.position.y + (renderableEntity.transformComponent.scale.y * renderableEntity.spriteComponent.height) < camera.y ||
+					renderableEntity.transformComponent.position.y > camera.y + camera.h
+				);
+				// except fixed sprites
+				if (isEntityOutsideCameraView && !renderableEntity.spriteComponent.isFixed) {
+					continue;
+				}
 				renderableEntities.emplace_back(renderableEntity);
 			}
 
@@ -67,7 +77,7 @@ class RenderSystem: public System {
 					assetStore->GetTexture(sprite.assetId),
 					&srcRect, &dstRect, 
 					transform.rotation, NULL,
-					SDL_FLIP_NONE
+					sprite.flip
 				);
 
 				// Draw PNG texture

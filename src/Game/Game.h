@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <sol/sol.hpp>
 #include "../ECS/ECS.h"
 #include "../EventBus/EventBus.h"
 #include "../AssetStore/AssetStore.h"
@@ -16,6 +17,7 @@ class Game {
 		SDL_Window* window;
 		SDL_Renderer* renderer;
 		SDL_Rect camera;
+		sol::state lua;
 
 		std::unique_ptr<Registry> registry;
 		std::unique_ptr<AssetStore> assetStore;

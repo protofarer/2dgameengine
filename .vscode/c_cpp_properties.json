@@ -5,7 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/libs/**",
-                "/usr/include/SDL2"
+                "/usr/include/SDL2",
+                "${workspaceFolder}/libs",
+                "${workspaceFolder}/libs"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
